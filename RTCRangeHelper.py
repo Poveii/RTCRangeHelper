@@ -1,5 +1,23 @@
 from os import system
 from time import sleep
+import json
+
+init_data = {
+    "notRTCProblem": False,
+    "rangesExcluded": [],
+    "rangesTried": [],
+    "rangeHalf": [],
+}
+
+data = {}
+
+try:
+    with open("data.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+except:
+    with open("data.json", "w", encoding="utf-8") as f:
+        json.dump(init_data, f, indent=4)
+    data = init_data
 
 exit = False
 while not exit:
@@ -24,6 +42,15 @@ while not exit:
         print("\nMake sure to have RTCMemoryFixup.kext in your kexts")
         print("https://github.com/acidanthera/RTCMemoryFixup/releases")
         sleep(2)
+
+        # Add 0x00-0xFF range to rangesExcluded
+        def addRangeToRangesExcluded():
+            if data["rangesExcluded"] == [0, 255]:
+                return
+            data["rangesExcluded"].append([0, 255])
+            with open("data.json", "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
+        addRangeToRangesExcluded()
 
         print("\nNow reboot.")
         exit_option = input("\nPress enter to exit...")
