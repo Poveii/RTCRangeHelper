@@ -56,8 +56,37 @@ while not exit:
             elif errorQuestion.lower() == "n":
                 system("clear")
                 print("We found the error. Let's mitigate!")
-                sleep(2)
 
+                firstHalfRangeExcluded = [data["rangesExcluded"][0][0], int(data["rangesExcluded"][0][-1] / 2)]
+                otherHalfRangeExcluded = [data["rangesExcluded"][0][-1] - int(data["rangesExcluded"][0][-1] / 2), data["rangesExcluded"][0][-1]]
+
+                # Move the first range excluded to rangesTried
+                with open("data.json", "w", encoding="utf-8") as f:
+                    firstRangeExcluded = data["rangesExcluded"][0]
+                    data["rangesTried"].append(firstRangeExcluded)
+                    data["rangesExcluded"].pop()
+                    json.dump(data, f, indent=4)
+
+                print("\nLet's split our RTC range. Test the first half.")
+                sleep(2)
+                print("\nChange the range to this in your boot-args: ")
+
+                print(f"\nrtcfx_exclude={firstHalfRangeExcluded[0]:02X}-{firstHalfRangeExcluded[1]:02X}")
+
+                # Add current range excluded to rangesExcluded
+                with open("data.json", "w", encoding="utf-8") as f:
+                    data["rangesExcluded"].append(firstHalfRangeExcluded)
+                    json.dump(data, f, indent=4)
+
+                # Add the other half range excluded to rangeHalf
+                with open("data.json", "w", encoding="utf-8") as f:
+                    data["rangeHalf"].append(otherHalfRangeExcluded)
+                    json.dump(data, f, indent=4)
+
+                sleep(2)
+                print("\nNow reboot.")
+                exit_option = input("\nPress enter to exit...")
+                exit = True
             else:
                 system("clear")
                 print("Invalid answer")
@@ -111,7 +140,6 @@ while not exit:
 
         print("\nNow reboot.")
         exit_option = input("\nPress enter to exit...")
-        system("clear")
         exit = True
     # 2. Exit
     elif option == "2":
