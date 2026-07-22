@@ -90,6 +90,7 @@ while not exit and not not_rtc_problem:
 
                 # Add the other half range excluded to rangeHalf
                 with open("data.json", "w", encoding="utf-8") as f:
+                    data["rangeHalf"] = []
                     data["rangeHalf"].append(otherHalfRangeExcluded)
                     json.dump(data, f, indent=4)
 
