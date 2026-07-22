@@ -19,8 +19,10 @@ except:
         json.dump(init_data, f, indent=4)
     data = init_data
 
+not_rtc_problem = data["notRTCProblem"]
+
 exit = False
-while not exit:
+while not exit and not not_rtc_problem:
     system("clear")
 
     # If the process already started
@@ -36,6 +38,14 @@ while not exit:
         if option == "1":
             errorQuestion = input("\nDid you still get the CMOS error? (y/n): ")
             if errorQuestion.lower() == "y":
+                if data["rangesExcluded"] == [[0, 127], [128, 255]]:
+                    print("So, these errors are not related to RTC Ranges. You can close this program and search something about CMOS errors.")
+                    with open("data.json", "w", encoding="utf-8") as f:
+                        data["notRTCProblem"] = True
+                        json.dump(data, f, indent=4)
+                    sleep(4)
+                    continue
+
                 if data["rangesExcluded"] == [[0, 255]]:
                     system("clear")
                     print("You can try the 0x00-0x7F and 0x80-0xFF ranges together. The bit between these can be the RTC issue.")
@@ -150,3 +160,6 @@ while not exit:
         print("Invalid option")
         sleep(2)
         continue
+
+if not_rtc_problem:
+    print("It's not a RTC problem. So this helper can not help you.")
