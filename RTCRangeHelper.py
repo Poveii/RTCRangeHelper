@@ -118,7 +118,7 @@ while not exit and not not_rtc_problem:
                 continue
             else:
                 system("clear")
-                print("Invalid option")
+                print("Invalid answer")
                 sleep(2)
                 continue
         # 3. Exit
