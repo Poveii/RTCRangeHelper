@@ -105,9 +105,22 @@ while not exit and not not_rtc_problem:
             continue
         # 2. Start over the process
         elif option == "2":
-            print("2")
-            sleep(2)
-            continue
+            important_option = input("Do you really want to start the process again? (y/n) ")
+
+            if important_option == "y":
+                print("Starting over the process...")
+                with open("data.json", "w", encoding="utf-8") as f:
+                    json.dump(init_data, f, indent=4)
+                sleep(2)
+                system("clear")
+            elif important_option == "n":
+                system("clear")
+                continue
+            else:
+                system("clear")
+                print("Invalid option")
+                sleep(2)
+                continue
         # 3. Exit
         elif option == "3":
             print("Exiting")
