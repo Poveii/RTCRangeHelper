@@ -130,6 +130,7 @@ while not exit and not not_rtc_problem:
 
             if important_option == "y":
                 print("Starting over the process...")
+                data = init_data
                 with open("data.json", "w", encoding="utf-8") as f:
                     json.dump(init_data, f, indent=4)
                 sleep(2)
