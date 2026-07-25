@@ -38,6 +38,25 @@ while not exit and not not_rtc_problem:
         if option == "1":
             errorQuestion = input("\nDid you still get the CMOS error? (y/n): ")
             if errorQuestion.lower() == "y":
+                if len(data["rangeHalf"]) >= 1:
+                    system("clear")
+                    print("So, the error is not in this range. Let's test the other half.")
+
+                    print("\nChange the range to this in your boot-args: ")
+                    print(f"\nrtcfx_exclude={data["rangeHalf"][0][0]:02X}-{data["rangeHalf"][0][1]:02X}")
+
+                    with open("data.json", "w", encoding="utf-8") as f:
+                        data["rangesTried"].append(data["rangesExcluded"][0])
+                        data["rangesExcluded"] = data["rangeHalf"]
+                        data["rangeHalf"] = []
+                        json.dump(data, f, indent=4)
+
+                    sleep(2)
+                    print("\nNow reboot.")
+                    exit_option = input("\nPress enter to exit...")
+                    system("clear")
+                    exit = True
+
                 if data["rangesExcluded"] == [[0, 127], [128, 255]]:
                     print("So, these errors are not related to RTC Ranges. You can close this program and search something about CMOS errors.")
                     with open("data.json", "w", encoding="utf-8") as f:
@@ -67,8 +86,10 @@ while not exit and not not_rtc_problem:
                 system("clear")
                 print("We found the error. Let's mitigate!")
 
-                firstHalfRangeExcluded = [data["rangesExcluded"][0][0], int(data["rangesExcluded"][0][-1] / 2)]
-                otherHalfRangeExcluded = [data["rangesExcluded"][0][-1] - int(data["rangesExcluded"][0][-1] / 2), data["rangesExcluded"][0][-1]]
+                isFirstNumberRangeExcludedGreaterThanZero = True if data["rangesExcluded"][0][0] > 0 else False
+                firstNumberRangeExcludedDiffDivided = int((data["rangesExcluded"][0][-1] - data["rangesExcluded"][0][0]) / 2)
+                firstHalfRangeExcluded = [data["rangesExcluded"][0][0], data["rangesExcluded"][0][-1] - firstNumberRangeExcludedDiffDivided if isFirstNumberRangeExcludedGreaterThanZero else int(data["rangesExcluded"][0][-1] / 2)]
+                otherHalfRangeExcluded = [data["rangesExcluded"][0][-1] - firstNumberRangeExcludedDiffDivided if isFirstNumberRangeExcludedGreaterThanZero else data["rangesExcluded"][0][-1] - int(data["rangesExcluded"][0][-1] / 2), data["rangesExcluded"][0][-1]]
 
                 # Move the first range excluded to rangesTried
                 with open("data.json", "w", encoding="utf-8") as f:
