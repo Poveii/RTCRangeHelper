@@ -1,4 +1,4 @@
-from os import system
+from subprocess import call
 from time import sleep
 import json
 
@@ -23,7 +23,7 @@ not_rtc_problem = data["notRTCProblem"]
 
 exit = False
 while not exit and not not_rtc_problem:
-    system("clear")
+    call("clear")
 
     # If the process already started
     if data["rangesExcluded"] == [[0, 255]] or len(data["rangesTried"]) >= 1:
@@ -39,7 +39,7 @@ while not exit and not not_rtc_problem:
             errorQuestion = input("\nDid you still get the CMOS error? (y/n): ")
             if errorQuestion.lower() == "y":
                 if len(data["rangeHalf"]) >= 1:
-                    system("clear")
+                    call("clear")
                     print("So, the error is not in this range. Let's test the other half.")
 
                     print("\nChange the range to this in your boot-args: ")
@@ -54,7 +54,7 @@ while not exit and not not_rtc_problem:
                     sleep(2)
                     print("\nNow reboot.")
                     exit_option = input("\nPress enter to exit...")
-                    system("clear")
+                    call("clear")
                     exit = True
 
                 if data["rangesExcluded"] == [[0, 127], [128, 255]]:
@@ -66,7 +66,7 @@ while not exit and not not_rtc_problem:
                     continue
 
                 if data["rangesExcluded"] == [[0, 255]]:
-                    system("clear")
+                    call("clear")
                     print("You can try the 0x00-0x7F and 0x80-0xFF ranges together. The bit between these can be the RTC issue.")
 
                     print("Change the range to this in your boot-args: ")
@@ -80,10 +80,10 @@ while not exit and not not_rtc_problem:
                     sleep(2)
                     print("\nNow reboot.")
                     exit_option = input("\nPress enter to exit...")
-                    system("clear")
+                    call("clear")
                     exit = True
             elif errorQuestion.lower() == "n":
-                system("clear")
+                call("clear")
                 print("We found the error. Let's mitigate!")
 
                 isFirstNumberRangeExcludedGreaterThanZero = True if data["rangesExcluded"][0][0] > 0 else False
@@ -120,7 +120,7 @@ while not exit and not not_rtc_problem:
                 exit_option = input("\nPress enter to exit...")
                 exit = True
             else:
-                system("clear")
+                call("clear")
                 print("Invalid answer")
                 sleep(2)
             continue
@@ -134,12 +134,12 @@ while not exit and not not_rtc_problem:
                 with open("data.json", "w", encoding="utf-8") as f:
                     json.dump(init_data, f, indent=4)
                 sleep(2)
-                system("clear")
+                call("clear")
             elif important_option == "n":
-                system("clear")
+                call("clear")
                 continue
             else:
-                system("clear")
+                call("clear")
                 print("Invalid answer")
                 sleep(2)
                 continue
@@ -149,7 +149,7 @@ while not exit and not not_rtc_problem:
             exit = True
             continue
         else:
-            system("clear")
+            call("clear")
             print("Invalid option")
             sleep(2)
             continue
@@ -162,10 +162,10 @@ while not exit and not not_rtc_problem:
 
     # 1. Init the process
     if option == "1":
-        system("clear")
+        call("clear")
         print("Make sure that you already test the DisableRtcChecksum quirk in Kernel -> Quirks")
         sleep(3)
-        system("clear")
+        call("clear")
         print("Let's get start with the 0x00-0xFF range to see if your CMOS problem is related to RTC ranges.")
         sleep(2)
         print("\nPut this in your boot-args: ")
@@ -192,7 +192,7 @@ while not exit and not not_rtc_problem:
         print("Exiting")
         exit = True
     else:
-        system("clear")
+        call("clear")
         print("Invalid option")
         sleep(2)
         continue
