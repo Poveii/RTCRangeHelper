@@ -4,6 +4,7 @@ import json
 
 init_data = {
     "notRTCProblem": False,
+    "rangesExcludedInHex": "",
     "rangesExcluded": [],
     "rangesTried": [],
     "rangeHalf": [],
@@ -28,6 +29,9 @@ while not exit and not not_rtc_problem:
     # If the process already started
     if data["rangesExcluded"] == [[0, 255]] or len(data["rangesTried"]) >= 1:
         print("\nRTCRangeHelper\n")
+
+        print(f"Ranges Excluded: {data['rangesExcludedInHex']}\n")
+
         print("1. Continue the process")
         print("2. Start over the process")
         print("3. Exit")
@@ -56,6 +60,7 @@ while not exit and not not_rtc_problem:
                     with open("data.json", "w", encoding="utf-8") as f:
                         data["rangesTried"].append(data["rangesExcluded"][0])
                         data["rangesExcluded"] = [[0, 127], [128, 255]]
+                        data["rangesExcludedInHex"] = "00-7F,80-FF"
                         json.dump(data, f, indent=4)
                     
                     sleep(2)
@@ -97,6 +102,10 @@ while not exit and not not_rtc_problem:
                     rangesDivided = ["-".join(format(y, "02X") for y in x) for x in data["rangesExcluded"]]
                     print(f"\nrtcfx_exclude={','.join(rangesDivided)}")
 
+                    with open("data.json", "w", encoding="utf-8") as f:
+                        data["rangesExcludedInHex"] = ','.join(rangesDivided)
+                        json.dump(data, f, indent=4)
+
                     sleep(2)
                     print("\nNow reboot.")
                     exit_option = input("\nPress enter to exit...")
@@ -119,6 +128,10 @@ while not exit and not not_rtc_problem:
 
                     rangesDivided = ["-".join(format(y, "02X") for y in x) for x in data["rangesExcluded"]]
                     print(f"\nrtcfx_exclude={','.join(rangesDivided)}")
+
+                    with open("data.json", "w", encoding="utf-8") as f:
+                        data["rangesExcludedInHex"] = ','.join(rangesDivided)
+                        json.dump(data, f, indent=4)
 
                     sleep(2)
                     print("\nNow reboot.")
@@ -205,6 +218,13 @@ while not exit and not not_rtc_problem:
                             data["rangeHalf"].append(otherHalfRangeExcluded)
                         json.dump(data, f, indent=4)
 
+                    with open("data.json", "w", encoding="utf-8") as f:
+                        if len(data["rangesExcluded"]) > 1:
+                            data["rangesExcludedInHex"] = ','.join(rangesDivided)
+                        else:
+                            data["rangesExcludedInHex"] = f"{firstHalfRangeExcluded[0]:02X}-{firstHalfRangeExcluded[1]:02X}"
+                        json.dump(data, f, indent=4)
+
                     sleep(2)
                     print("\nNow reboot.")
                     exit_option = input("\nPress enter to exit...")
@@ -271,6 +291,7 @@ while not exit and not not_rtc_problem:
                 return
             data["rangesExcluded"].append([0, 255])
             with open("data.json", "w", encoding="utf-8") as f:
+                data["rangesExcludedInHex"] = "00-FF"
                 json.dump(data, f, indent=4)
         addRangeToRangesExcluded()
 
