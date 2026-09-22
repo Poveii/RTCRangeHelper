@@ -140,7 +140,7 @@ while not exit and not not_rtc_problem:
                     exit = True
 
             elif errorQuestion.lower() == "n":
-                if (len(data["rangesExcluded"]) > 1):
+                if (len(data["rangesExcluded"]) > 1 and len(data["rangesTried"]) == 0):
                     call("clear")
                     for x in data["rangesExcluded"]:
                         firstNumber = x[0]
