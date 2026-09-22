@@ -8,6 +8,8 @@ init_data = {
     "rangesExcluded": [],
     "rangesTried": [],
     "rangeHalf": [],
+    "rangeCombination": 0,
+    "rangeOriginal": [],
 }
 
 data = {}
@@ -80,48 +82,43 @@ while not exit and not not_rtc_problem:
                         print("We have multiple ranges excluded. Let's test the other half of one first.")
 
                     # Switch the rangeHalf with rangesExcluded
-                    if len(data["rangesExcluded"]) == len(data["rangeHalf"]):
-                        data["rangesTried"].append(data["rangesExcluded"][0])
-                        data["rangesExcluded"][0] = data["rangeHalf"][0]
-                        data["rangeHalf"].pop(0)
-                    elif len(data["rangesExcluded"]) > len(data["rangeHalf"]):
-                        if len(data["rangeHalf"]) == 1:
-                            data["rangesTried"].append(data["rangesExcluded"][-1])
-                            data["rangesExcluded"][-1] = data["rangeHalf"][-1]
-                            data["rangeHalf"].clear()
-                        else:
-                            data["rangesTried"].append(data["rangesExcluded"][-abs(len(data["rangeHalf"]))])
-                            data["rangesExcluded"][-abs(len(data["rangeHalf"]))] = data["rangeHalf"][-abs(len(data["rangeHalf"]))]
-                            data["rangeHalf"].pop(0)
-                    else:
-                        data["rangesTried"].append(data["rangesExcluded"][0])
-                        data["rangesExcluded"] = data["rangeHalf"]
+                    numberOfRanges = len(data["rangesExcluded"])
+                    numberOfCombinations = 1 << numberOfRanges
+
+                    if data["rangeCombination"] >= numberOfCombinations or data["rangesExcluded"] == data["rangeHalf"]:
+                        print("All combinations of ranges have been tested. Let's try the last both together.")
+
+                        data["rangesExcluded"] = data["rangeOriginal"] + data["rangeHalf"]
+                        data["rangesExcluded"].sort()
                         data["rangeHalf"].clear()
+                        data["rangeOriginal"].clear()
+                        data["rangeCombination"] = 0
 
-                    print("\nChange the range to this in your boot-args: ")
+                        print("\nChange the range to this in your boot-args: ")
 
-                    rangesResult = ','.join(["-".join(format(y, "02X") for y in x) for x in data["rangesExcluded"]])
-                    print(f"\nrtcfx_exclude={rangesResult}")
-                    data["rangesExcludedInHex"] = rangesResult
+                        rangesResult = ','.join(["-".join(format(y, "02X") for y in x) for x in data["rangesExcluded"]])
+                        print(f"\nrtcfx_exclude={rangesResult}")
+                        data["rangesExcludedInHex"] = rangesResult
 
-                    with open("data.json", "w", encoding="utf-8") as f:
-                        json.dump(data, f, indent=4)
+                        with open("data.json", "w", encoding="utf-8") as f:
+                            json.dump(data, f, indent=4)
 
-                    sleep(2)
-                    print("\nNow reboot.")
-                    exit_option = input("\nPress enter to exit...")
-                    call("clear")
-                    exit = True
-                else:
-                    call("clear")
-                    print("The error can be in multiple ranges. Let's try the last both together.")
+                        sleep(2)
+                        print("\nNow reboot.")
+                        exit_option = input("\nPress enter to exit...")
+                        call("clear")
+                        exit = True
+                        continue
 
-                    # Come back the last Range tried to Range Excluded
-                    for i in range(len(data["rangesExcluded"])):
-                        lastRangeTried = data["rangesTried"][-1]
-                        data["rangesExcluded"].insert(0, lastRangeTried)
-                        data["rangesTried"].remove(lastRangeTried)
-                    data["rangesExcluded"].sort()
+                    data["rangeCombination"] += 1
+                    combination = data["rangeCombination"]
+
+                    data["rangesExcluded"] = [
+                        data["rangeHalf"][index]
+                        if combination & (1 << index)
+                        else data["rangeOriginal"][index]
+                        for index in range(numberOfRanges)
+                    ]
 
                     print("\nChange the range to this in your boot-args: ")
 
@@ -169,6 +166,8 @@ while not exit and not not_rtc_problem:
                         print("We have multiple ranges excluded. Let's split out one by one to mitigate the error.")
 
                     data["rangeHalf"].clear()
+                    data["rangeCombination"] = 0
+
                     for i, rng in enumerate(data["rangesExcluded"]):
                         rangeHalf = int((rng[0] + rng[1]) / 2)
                         firstRangeHalfExcluded = [rng[0], rangeHalf]
@@ -176,6 +175,8 @@ while not exit and not not_rtc_problem:
                         data["rangesExcluded"].remove(rng)
                         data["rangesExcluded"].insert(i, firstRangeHalfExcluded)
                         data["rangeHalf"].insert(i, [rangeHalf + 1, rng[1]])
+
+                    data["rangeOriginal"] = data["rangesExcluded"].copy()
 
                     print("\nLet's split our RTC range. Test the first half.")
                     sleep(2)
