@@ -136,12 +136,18 @@ while not exit and not not_rtc_problem:
                     exit = True
 
             elif errorQuestion.lower() == "n":
-                if (len(data["rangesExcluded"]) > 1 and len(data["rangesTried"]) == 0):
+                if len(data["rangesExcluded"]) > 1:
                     call("clear")
+                    hasRangeBetweenNumbers = []
                     for x in data["rangesExcluded"]:
                         firstNumber = x[0]
                         lastNumber = x[1]
-                        hasRangeBetweenNumbers = (lastNumber - firstNumber) > 1
+                        hasRangeBetweenNumbers.append((lastNumber - firstNumber) > 1)
+                    for rangeCheck in hasRangeBetweenNumbers:
+                        if rangeCheck:
+                            hasRangeBetweenNumbers = True
+                        else:
+                            hasRangeBetweenNumbers = False
                     if not(hasRangeBetweenNumbers):
                         sleep(2)
                         print("\nCongratulations! We found the range that is causing the error.\n")
