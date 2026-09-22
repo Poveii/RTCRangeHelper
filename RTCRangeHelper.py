@@ -44,8 +44,10 @@ while not exit and not not_rtc_problem:
             if errorQuestion.lower() == "y":
                 if data["rangesExcluded"] == [[0, 127], [128, 255]]:
                     print("So, these errors are not related to RTC Ranges. You can close this program and search something about CMOS errors.")
+
+                    data["notRTCProblem"] = True
+
                     with open("data.json", "w", encoding="utf-8") as f:
-                        data["notRTCProblem"] = True
                         json.dump(data, f, indent=4)
                     sleep(4)
                     continue
@@ -57,10 +59,11 @@ while not exit and not not_rtc_problem:
                     print("Change the range to this in your boot-args: ")
                     print("\nrtcfx_exclude=00-7F,80-FF")
 
+                    data["rangesTried"].append(data["rangesExcluded"][0])
+                    data["rangesExcluded"] = [[0, 127], [128, 255]]
+                    data["rangesExcludedInHex"] = "00-7F,80-FF"
+
                     with open("data.json", "w", encoding="utf-8") as f:
-                        data["rangesTried"].append(data["rangesExcluded"][0])
-                        data["rangesExcluded"] = [[0, 127], [128, 255]]
-                        data["rangesExcludedInHex"] = "00-7F,80-FF"
                         json.dump(data, f, indent=4)
                     
                     sleep(2)
@@ -77,33 +80,31 @@ while not exit and not not_rtc_problem:
                         print("We have multiple ranges excluded. Let's test the other half of one first.")
 
                     # Switch the rangeHalf with rangesExcluded
-                    with open("data.json", "w", encoding="utf-8") as f:
-                        if len(data["rangesExcluded"]) == len(data["rangeHalf"]):
-                            data["rangesTried"].append(data["rangesExcluded"][0])
-                            data["rangesExcluded"][0] = data["rangeHalf"][0]
-                            data["rangeHalf"].pop(0)
-                        elif len(data["rangesExcluded"]) > len(data["rangeHalf"]):
-                            if len(data["rangeHalf"]) == 1:
-                                data["rangesTried"].append(data["rangesExcluded"][-1])
-                                data["rangesExcluded"][-1] = data["rangeHalf"][-1]
-                                data["rangeHalf"].clear()
-                            else:
-                                data["rangesTried"].append(data["rangesExcluded"][-abs(len(data["rangeHalf"]))])
-                                data["rangesExcluded"][-abs(len(data["rangeHalf"]))] = data["rangeHalf"][-abs(len(data["rangeHalf"]))]
-                                data["rangeHalf"].pop(0)
-                        else:
-                            data["rangesTried"].append(data["rangesExcluded"][0])
-                            data["rangesExcluded"] = data["rangeHalf"]
+                    if len(data["rangesExcluded"]) == len(data["rangeHalf"]):
+                        data["rangesTried"].append(data["rangesExcluded"][0])
+                        data["rangesExcluded"][0] = data["rangeHalf"][0]
+                        data["rangeHalf"].pop(0)
+                    elif len(data["rangesExcluded"]) > len(data["rangeHalf"]):
+                        if len(data["rangeHalf"]) == 1:
+                            data["rangesTried"].append(data["rangesExcluded"][-1])
+                            data["rangesExcluded"][-1] = data["rangeHalf"][-1]
                             data["rangeHalf"].clear()
-                        json.dump(data, f, indent=4)
+                        else:
+                            data["rangesTried"].append(data["rangesExcluded"][-abs(len(data["rangeHalf"]))])
+                            data["rangesExcluded"][-abs(len(data["rangeHalf"]))] = data["rangeHalf"][-abs(len(data["rangeHalf"]))]
+                            data["rangeHalf"].pop(0)
+                    else:
+                        data["rangesTried"].append(data["rangesExcluded"][0])
+                        data["rangesExcluded"] = data["rangeHalf"]
+                        data["rangeHalf"].clear()
 
                     print("\nChange the range to this in your boot-args: ")
 
-                    rangesDivided = ["-".join(format(y, "02X") for y in x) for x in data["rangesExcluded"]]
-                    print(f"\nrtcfx_exclude={','.join(rangesDivided)}")
+                    rangesResult = ','.join(["-".join(format(y, "02X") for y in x) for x in data["rangesExcluded"]])
+                    print(f"\nrtcfx_exclude={rangesResult}")
+                    data["rangesExcludedInHex"] = rangesResult
 
                     with open("data.json", "w", encoding="utf-8") as f:
-                        data["rangesExcludedInHex"] = ','.join(rangesDivided)
                         json.dump(data, f, indent=4)
 
                     sleep(2)
@@ -116,21 +117,19 @@ while not exit and not not_rtc_problem:
                     print("The error can be in multiple ranges. Let's try the last both together.")
 
                     # Come back the last Range tried to Range Excluded
-                    with open("data.json", "w", encoding="utf-8") as f:
-                        for i in range(len(data["rangesExcluded"])):
-                            lastRangeTried = data["rangesTried"][-1]
-                            data["rangesExcluded"].insert(0, lastRangeTried)
-                            data["rangesTried"].remove(lastRangeTried)
-                        data["rangesExcluded"].sort()
-                        json.dump(data, f, indent=4)
+                    for i in range(len(data["rangesExcluded"])):
+                        lastRangeTried = data["rangesTried"][-1]
+                        data["rangesExcluded"].insert(0, lastRangeTried)
+                        data["rangesTried"].remove(lastRangeTried)
+                    data["rangesExcluded"].sort()
 
                     print("\nChange the range to this in your boot-args: ")
 
-                    rangesDivided = ["-".join(format(y, "02X") for y in x) for x in data["rangesExcluded"]]
-                    print(f"\nrtcfx_exclude={','.join(rangesDivided)}")
+                    rangesResult = ','.join(["-".join(format(y, "02X") for y in x) for x in data["rangesExcluded"]])
+                    print(f"\nrtcfx_exclude={rangesResult}")
+                    data["rangesExcludedInHex"] = rangesResult
 
                     with open("data.json", "w", encoding="utf-8") as f:
-                        data["rangesExcludedInHex"] = ','.join(rangesDivided)
                         json.dump(data, f, indent=4)
 
                     sleep(2)
@@ -169,60 +168,24 @@ while not exit and not not_rtc_problem:
                     if len(data["rangesExcluded"]) > 1:
                         print("We have multiple ranges excluded. Let's split out one by one to mitigate the error.")
 
-                    rangesList = []
-                    for i in range(len(data["rangesExcluded"])):
-                        DIFF_BETWEEN_RANGES_NUMBER = 1
-                        isFirstNumberRangeExcludedGreaterThanZero = True if data["rangesExcluded"][0][0] > 0 else False
-                        firstNumberRangeExcludedDiffDivided = int((data["rangesExcluded"][i][-1] - data["rangesExcluded"][i][0]) / 2) + DIFF_BETWEEN_RANGES_NUMBER
-                        firstHalfRangeExcluded = [data["rangesExcluded"][i][0], data["rangesExcluded"][i][-1] - firstNumberRangeExcludedDiffDivided if isFirstNumberRangeExcludedGreaterThanZero else int(data["rangesExcluded"][i][-1] / 2)]
-
-                        otherHalfRangeExcluded = [(data["rangesExcluded"][i][-1] + DIFF_BETWEEN_RANGES_NUMBER) - firstNumberRangeExcludedDiffDivided if isFirstNumberRangeExcludedGreaterThanZero else data["rangesExcluded"][i][-1] - int(data["rangesExcluded"][i][-1] / 2), data["rangesExcluded"][i][-1]]
-
-                        rangesList.append([firstHalfRangeExcluded, otherHalfRangeExcluded])
-                        # Move the range excluded to rangesTried
-                        rangeExcluded = data["rangesExcluded"][i]
-                        data["rangesTried"].append(rangeExcluded)
+                    data["rangeHalf"].clear()
+                    for i, rng in enumerate(data["rangesExcluded"]):
+                        rangeHalf = int((rng[0] + rng[1]) / 2)
+                        firstRangeHalfExcluded = [rng[0], rangeHalf]
+                        data["rangesTried"].append(rng)
+                        data["rangesExcluded"].remove(rng)
+                        data["rangesExcluded"].insert(i, firstRangeHalfExcluded)
+                        data["rangeHalf"].insert(i, [rangeHalf + 1, rng[1]])
 
                     print("\nLet's split our RTC range. Test the first half.")
                     sleep(2)
                     print("\nChange the range to this in your boot-args: ")
 
-                    # Add current range excluded to rangesExcluded
-                    with open("data.json", "w", encoding="utf-8") as f:
-                        if len(data["rangesExcluded"]) > 1:
-                            for x in rangesList:
-                                data["rangesExcluded"].append(x[0])
-                        else:
-                            data["rangesExcluded"].append(firstHalfRangeExcluded)
-                        json.dump(data, f, indent=4)
-
-                    # Remove the rangesExcluded already moved to rangesTried
-                    with open("data.json", "w", encoding="utf-8") as f:
-                        for i in range(len(rangesList)):
-                            data["rangesExcluded"].pop(0)
-                        json.dump(data, f, indent=4)
-
-                    if len(data["rangesExcluded"]) > 1:
-                        rangesDivided = ["-".join(format(y, "02X") for y in x) for x in data["rangesExcluded"]]
-                        print(f"\nrtcfx_exclude={','.join(rangesDivided)}")
-                    else:
-                        print(f"\nrtcfx_exclude={firstHalfRangeExcluded[0]:02X}-{firstHalfRangeExcluded[1]:02X}")
-
-                    # Add the other half range excluded to rangeHalf
-                    with open("data.json", "w", encoding="utf-8") as f:
-                        data["rangeHalf"] = []
-                        if len(data["rangesExcluded"]) > 1:
-                            for x in rangesList:
-                                data["rangeHalf"].append(x[1])
-                        else:
-                            data["rangeHalf"].append(otherHalfRangeExcluded)
-                        json.dump(data, f, indent=4)
+                    rangesResult = ','.join(['-'.join(format(y, '02X') for y in x) for x in data['rangesExcluded']])
+                    print(f"\nrtcfx_exclude={rangesResult}")
+                    data["rangesExcludedInHex"] = rangesResult
 
                     with open("data.json", "w", encoding="utf-8") as f:
-                        if len(data["rangesExcluded"]) > 1:
-                            data["rangesExcludedInHex"] = ','.join(rangesDivided)
-                        else:
-                            data["rangesExcludedInHex"] = f"{firstHalfRangeExcluded[0]:02X}-{firstHalfRangeExcluded[1]:02X}"
                         json.dump(data, f, indent=4)
 
                     sleep(2)
@@ -290,8 +253,8 @@ while not exit and not not_rtc_problem:
             if data["rangesExcluded"] == [0, 255]:
                 return
             data["rangesExcluded"].append([0, 255])
+            data["rangesExcludedInHex"] = "00-FF"
             with open("data.json", "w", encoding="utf-8") as f:
-                data["rangesExcludedInHex"] = "00-FF"
                 json.dump(data, f, indent=4)
         addRangeToRangesExcluded()
 
